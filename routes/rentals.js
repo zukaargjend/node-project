@@ -4,9 +4,8 @@ const express = require('express');
 const {Movie} = require('../models/movie');
 const {Customer} = require('../models/customer');
 const router = express.Router();
-const Fawn = require("fawn");
+// const Fawn = require("fawn");
 
-Fawn.init('mongodb://0.0.0.0:27017/vidly');
 
 router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
@@ -38,17 +37,26 @@ router.post('/', async (req, res) => {
             numberInStock: movie.numberInStock
         }
     });
-    try {
-        new Fawn.Task()
-            .save('rentals', rental)
-            .update('movies', { _id: movie._id }, {
-                $inc: {numberInStock: -1 }
-            })
-            .run();
+    // try {
+    //     new Fawn.Task()
+    //         .save('rentals', rental)
+    //         .update('movies', { _id: movie._id }, {
+    //             $inc: {numberInStock: -1 }
+    //         })
+    //         .run();
+    //     res.send(rental);
+    // }catch(ex){
+    //     res.status(500).send('Something failed');
+    // }
+    for ( numberRental = 0; numberRental < movie.numberInStock; numberRental++) {
+        rental = await rental.save();
         res.send(rental);
-    }catch(ex){
-        res.status(500).send('Something failed');
-    }
+        if(movie.numberInStock === 0 || movie.numberInStock <= numberRental){
+            console.log("there is no movie");
+        }
+        return;
+    }return res.status(400).send('There is no movie in stock');
 });
+
 
 module.exports = router;
